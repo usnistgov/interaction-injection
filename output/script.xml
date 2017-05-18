@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ASCII"?>
+<script:Script xmlns:script="http://hla.nist.gov/script.Script">
+  <interaction injectionTimeValue="1.0" name="abc" param1="755498052" param2="718616142" startTime="0.08111501742598637"/>
+  <interaction injectionTimeValue="2.0" name="abc" param1="1799819288" param2="-2085841289" startTime="0.29421537056744673"/>
+  <interaction injectionTimeValue="3.0" name="abc" param1="1725062963" param2="1131948262" startTime="0.420607126462307"/>
+  <interaction injectionTimeValue="4.0" name="abc" param1="1540832397" param2="848424550" startTime="0.6478239124515455"/>
+  <interaction injectionTimeValue="5.0" name="abc" param1="116277365" param2="508488440" startTime="0.6714072594332396"/>
+  <interaction injectionTimeValue="6.0" name="abc" param1="1025351603" param2="964204586" startTime="0.12406237253889485"/>
+  <interaction injectionTimeValue="7.0" name="abc" param1="-1735962388" param2="1211803823" startTime="0.5381098530044918"/>
+  <interaction injectionTimeValue="8.0" name="abc" param1="2030675018" param2="804319532" startTime="0.05365537302346035"/>
+  <interaction injectionTimeValue="9.0" name="abc" param1="-211865253" param2="2108328527" startTime="0.26581072444778386"/>
+  <interaction injectionTimeValue="10.0" name="abc" param1="1790263097" param2="636780582" startTime="0.46007763324959805"/>
+  <expect federateType="FederateName"/>
+</script:Script>
