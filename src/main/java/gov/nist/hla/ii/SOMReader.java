@@ -182,7 +182,7 @@ public class SOMReader {
     try {
       log.info("reading the SOM file " + filepath);
       
-      input = new FileInputStream(filepath);
+      input = SOMReader.class.getResourceAsStream(filepath);
       Document document = builder.parse(input);
       Element root = document.getDocumentElement();
       

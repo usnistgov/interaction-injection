@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+-->
+
+<plugin>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated ieee -->
+      <package
+            uri="http://standards.ieee.org/IEEE1516-2010"
+            class="org.ieee.standards.ieee1516._2010._2010Package"
+            genModel="model/ieee.genmodel"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.extension_parser">
+      <!-- @generated ieee -->
+      <parser
+            type="_2010"
+            class="org.ieee.standards.ieee1516._2010.util._2010ResourceFactoryImpl"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated script -->
+      <package
+            uri="http://hla.nist.gov/script.Script"
+            class="gov.nist.hla.script.ScriptPackage"
+            genModel="model/script.genmodel"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.extension_parser">
+      <!-- @generated script -->
+      <parser
+            type="script"
+            class="gov.nist.hla.script.util.ScriptResourceFactoryImpl"/>
+   </extension>
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated fom -->
+      <package
+            uri="http://hla.nist.gov/fom.FOM"
+            class="gov.nist.hla.fom.FomPackage"
+            genModel="model/fom.genmodel"/>
+   </extension>
+
+   <extension point="org.eclipse.emf.ecore.extension_parser">
+      <!-- @generated fom -->
+      <parser
+            type="fom"
+            class="gov.nist.hla.fom.util.FomResourceFactoryImpl"/>
+   </extension>
+</plugin>
