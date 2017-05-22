@@ -34,7 +34,6 @@ import hla.rti.LogicalTime;
 import hla.rti.NameNotFound;
 import hla.rti.ObjectClassNotDefined;
 import hla.rti.ObjectNotKnown;
-import hla.rti.OwnershipAcquisitionPending;
 import hla.rti.RTIambassador;
 import hla.rti.RTIexception;
 import hla.rti.RTIinternalError;
