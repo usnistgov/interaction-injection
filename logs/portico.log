@@ -1,0 +1,15 @@
+WARN  [VERIFY_SUSPECT.TimerThread,TripleSend,vagrant-18447] portico.lrc.jgroups: Detected that federate [manager] may have crashed, investigating...
+WARN  [VERIFY_SUSPECT.TimerThread,TripleSend,vagrant-18447] portico.lrc.jgroups: Detected that federate [TripleReceive] may have crashed, investigating...
+WARN  [Regular] portico.lrc.jgroups: Federate [TripleReceive] has crashed. Sending fake resignation because it was too rude to.
+WARN  [Regular] portico.lrc.jgroups: Federate [manager] has crashed. Sending fake resignation because it was too rude to.
+ERROR [main] portico.lrc: Can't resign, federate [InjectionFederate] owns attributes [546, 502] for object [2097153]
+org.portico.lrc.compat.JFederateOwnsAttributes: Can't resign, federate [InjectionFederate] owns attributes [546, 502] for object [2097153]
+	at org.portico.lrc.services.federation.handlers.outgoing.ResignFederationHandler.validateResignAction(ResignFederationHandler.java:110)
+	at org.portico.lrc.services.federation.handlers.outgoing.ResignFederationHandler.process(ResignFederationHandler.java:76)
+	at org.portico.utils.messaging.MessageSink.process(MessageSink.java:187)
+	at org.portico.impl.hla13.Impl13Helper.processMessage(Impl13Helper.java:123)
+	at org.portico.impl.hla13.Rti13Ambassador.processMessage(Rti13Ambassador.java:5822)
+	at org.portico.impl.hla13.Rti13Ambassador.resignFederationExecution(Rti13Ambassador.java:412)
+	at gov.nist.hla.ii.InjectionFederate.resignFederationExecution(InjectionFederate.java:614)
+	at gov.nist.hla.ii.InjectionFederate.execute(InjectionFederate.java:183)
+	at gov.nist.hla.ii.InjectionFederate.main(InjectionFederate.java:630)

@@ -1,8 +1,11 @@
 package gov.nist.hla.ii;
 
-import java.io.FileInputStream;
+import gov.nist.hla.ii.exception.FileFormatException;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -17,8 +20,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
-
-import gov.nist.hla.ii.exception.FileFormatException;
 
 public class SOMReader {
   private static final Logger log = LogManager.getLogger();
@@ -181,8 +182,9 @@ public class SOMReader {
 
     try {
       log.info("reading the SOM file " + filepath);
-      
-      input = new FileInputStream(filepath);
+      File file = new File(filepath);
+      URI uri = file.toURI();
+      input = uri.toURL().openStream();
       Document document = builder.parse(input);
       Element root = document.getDocumentElement();
       
