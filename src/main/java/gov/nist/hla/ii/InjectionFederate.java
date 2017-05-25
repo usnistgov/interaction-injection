@@ -148,6 +148,11 @@ public class InjectionFederate {
 			enableTimeConstrained();
 			enableTimeRegulation();
 			publishAndSubscribe();
+<<<<<<< HEAD
+=======
+			
+// Hard coding starts here.
+>>>>>>> 8930d0fc7d3fd2a181b52cd456d28b5a20820398
 			String objectName = String
 					.format("%s.%s", OBJECT_NAME_ROOT, "Obj1");
 			String[] attrs = { "Obj1Attr1" };
@@ -163,7 +168,11 @@ public class InjectionFederate {
 				log.trace("handleMessages==>");
 				handleMessages();
 				log.trace("injectInteraction==>");
+<<<<<<< HEAD
 				Map<String, String> params = new HashMap<String, String>(); // InteractionFactory.createParameters();
+=======
+				Map<String, String> params = new HashMap<String, String>(); 
+>>>>>>> 8930d0fc7d3fd2a181b52cd456d28b5a20820398
 				log.trace("params==>" + params.size());
 				injectInteraction(
 						String.format("%s.%s", INTERACTION_NAME_ROOT, "Int1"),
@@ -352,7 +361,11 @@ public class InjectionFederate {
 		try {
 			for (String interactionName : simulationObjectModel
 					.getPublishedInteractions()) {
+<<<<<<< HEAD
 				log.info("creating HLA publication for the interaction="
+=======
+				log.info("creating HLA publication for the interaction "
+>>>>>>> 8930d0fc7d3fd2a181b52cd456d28b5a20820398
 						+ interactionName);
 				int interactionHandle = rtiAmb
 						.getInteractionClassHandle(interactionName);
@@ -360,7 +373,11 @@ public class InjectionFederate {
 			}
 			for (String interactionName : simulationObjectModel
 					.getSubscribedInteractions()) {
+<<<<<<< HEAD
 				log.info("creating HLA subscription for the interaction="
+=======
+				log.info("creating HLA subscription for the interaction "
+>>>>>>> 8930d0fc7d3fd2a181b52cd456d28b5a20820398
 						+ interactionName);
 				int interactionHandle = rtiAmb
 						.getInteractionClassHandle(interactionName);
@@ -410,7 +427,10 @@ public class InjectionFederate {
 			interactionHandle = rtiAmb
 					.getInteractionClassHandle(interactionName);
 			rtiAmb.publishInteractionClass(interactionHandle);
+<<<<<<< HEAD
 			log.debug("interactionName=" + interactionName);
+=======
+>>>>>>> 8930d0fc7d3fd2a181b52cd456d28b5a20820398
 			log.debug("interactionHandle=" + interactionHandle);
 			SuppliedParameters suppliedParameters = assembleParameters(
 					interactionHandle, parameters);

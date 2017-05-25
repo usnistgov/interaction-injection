@@ -182,9 +182,14 @@ public class SOMReader {
 
     try {
       log.info("reading the SOM file " + filepath);
+<<<<<<< HEAD
       File file = new File(filepath);
       URI uri = file.toURI();
       input = uri.toURL().openStream();
+=======
+      
+      input = SOMReader.class.getResourceAsStream(filepath);
+>>>>>>> 8930d0fc7d3fd2a181b52cd456d28b5a20820398
       Document document = builder.parse(input);
       Element root = document.getDocumentElement();
       
