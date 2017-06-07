@@ -52,6 +52,7 @@
     <interactions>
         <interactionClass>
             <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
             <interactionClass>
                 <name>RTIprivate</name>
                 <sharing>Neither</sharing>

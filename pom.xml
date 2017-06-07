@@ -80,7 +80,7 @@
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>${federation.name}.${federate.name}</mainClass>
+									<mainClass>gov.nist.hla.ii.${federate.name}</mainClass>
 								</transformer>
 							</transformers>
 							<filters>

@@ -304,7 +304,7 @@ public class SOMReader {
       throw new FileFormatException("interaction class defined without a name");
     }
     if (mySharing == null) {
-      throw new FileFormatException("interaction class defined without a sharing type");
+      throw new FileFormatException("interaction class defined without a sharing type" );
     }
     
     dataTypes.put(myName, myParameters);
