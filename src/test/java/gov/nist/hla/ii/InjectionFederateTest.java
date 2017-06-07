@@ -9,20 +9,11 @@ import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.eclipse.emf.ecore.EObject;
 import org.ieee.standards.ieee1516._2010.InteractionClassType;
-import org.ieee.standards.ieee1516._2010.InteractionClassType1;
-import org.ieee.standards.ieee1516._2010.InteractionsType;
 import org.ieee.standards.ieee1516._2010.ObjectClassType;
-import org.ieee.standards.ieee1516._2010.ObjectModelType;
-import org.ieee.standards.ieee1516._2010._2010Factory;
-import org.ieee.standards.ieee1516._2010._2010Package;
-import org.ieee.standards.ieee1516._2010.util._2010ResourceFactoryImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import emf.sds.Deserialize;
-import emf.sds.Serialize;
 import gov.nist.hla.ii.exception.PropertyNotAssigned;
 import gov.nist.hla.ii.exception.PropertyNotFound;
 import gov.nist.hla.ii.exception.RTIAmbassadorException;

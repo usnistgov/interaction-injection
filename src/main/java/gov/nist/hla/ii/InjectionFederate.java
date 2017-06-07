@@ -1,7 +1,6 @@
 package gov.nist.hla.ii;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,6 +100,10 @@ public class InjectionFederate {
 	private String federationName;
 	private static String fomFilePath;
 
+	private FederateCallback callBack;
+	
+	private InteractionSet interactionSet;
+
 	public String getFomFilePath() {
 		return fomFilePath;
 	}
@@ -157,8 +160,10 @@ public class InjectionFederate {
 		log.debug("lookahead=" + lookahead);
 		stepsize = configuration.getRequiredPropertyAsDouble("stepsize");
 		log.debug("stepsize=" + stepsize);
-
-		fom = load();
+		String dataFilePath = configuration.getRequiredProperty("data-file");
+		
+				
+		fom = loadFOM();
 
 		changeState(State.INITIALIZED);
 	}
@@ -184,10 +189,11 @@ public class InjectionFederate {
 			enableTimeConstrained();
 			enableTimeRegulation();
 			publishAndSubscribe();
-			String objectName = String.format("%s.%s", OBJECT_NAME_ROOT, "Obj1");
-			String[] attrs = { "Obj1Attr1" };
-			int objectHandle = publishObject(objectName, attrs);
-			int instanceHandle = registerObject(objectName);
+			 String objectName = String.format("%s.%s", OBJECT_NAME_ROOT,
+			 "Obj1");
+			 String[] attrs = { "Obj1Attr1" };
+			 int objectHandle = publishObject(objectName, attrs);
+			 int instanceHandle = registerObject(objectName);
 
 			synchronize(READY_TO_POPULATE);
 			synchronize(READY_TO_RUN);
@@ -197,6 +203,7 @@ public class InjectionFederate {
 			while (state != State.TERMINATING) {
 				log.trace("handleMessages==>");
 				handleMessages();
+//				doInjectsUpdates();
 				log.trace("injectInteraction==>");
 				Map<String, String> params = new HashMap<String, String>(); // InteractionFactory.createParameters();
 				log.trace("params==>" + params.size());
@@ -358,10 +365,9 @@ public class InjectionFederate {
 		}
 	}
 
-	ObjectModelType load() {
-		Deserialize.getResourceSet().getResourceFactoryRegistry().getExtensionToFactoryMap().put("_2010",
-				new _2010ResourceFactoryImpl());
-		Deserialize.getResourceSet().getPackageRegistry().put(_2010Package.eNS_URI, _2010Package.eINSTANCE);
+	ObjectModelType loadFOM() {
+		Deserialize.associateExtension("xml", new _2010ResourceFactoryImpl());
+		Deserialize.registerPackage(_2010Package.eNS_URI, _2010Package.eINSTANCE);
 		DocumentRoot docRoot = (DocumentRoot) Deserialize.it(fomFilePath);
 		return docRoot.getObjectModel();
 	}
@@ -397,7 +403,8 @@ public class InjectionFederate {
 					attributes.add(attributeHandle);
 				}
 				rtiAmb.publishObjectClass(objectHandle, attributes);
-			}		} catch (Exception e) {
+			}
+		} catch (Exception e) {
 			log.error("", e);
 		}
 	}
@@ -446,6 +453,13 @@ public class InjectionFederate {
 		return suppliedParameters;
 	}
 
+	public void updateObject(String objectName, Map<String, String> attributes) {
+		String objectFullName = String.format("%s.%s", OBJECT_NAME_ROOT, objectName);
+		int objectHandle = publishObject(objectFullName, (String[]) attributes.keySet().toArray());
+		int instanceHandle = registerObject(objectFullName);
+		updateObject(objectHandle, instanceHandle, attributes);
+	}
+
 	public void updateObject(int classHandle, int objectHandle, Map<String, String> attributes) {
 		try {
 			SuppliedAttributes suppliedAttributes = assembleAttributes(classHandle, attributes);
@@ -490,6 +504,11 @@ public class InjectionFederate {
 			log.error("", e);
 		}
 		return suppliedAttributes;
+	}
+
+	private int publishObject(String objectName, Map<String, String> attributes) {
+
+		return 0;
 	}
 
 	private int publishObject(String objectName, String... attributes) {
@@ -609,7 +628,6 @@ public class InjectionFederate {
 			federate.loadConfiguration(args[0]);
 
 			federate.execute();
-			// federate.process();
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -633,7 +651,8 @@ public class InjectionFederate {
 		return set;
 	}
 
-	public Set<InteractionClassType> getInteractions(Set<InteractionClassType> set, InteractionClassType itr, SharingEnumerations pubsub) {
+	public Set<InteractionClassType> getInteractions(Set<InteractionClassType> set, InteractionClassType itr,
+			SharingEnumerations pubsub) {
 		if (itr.getSharing().getValue() == pubsub
 				|| itr.getSharing().getValue() == SharingEnumerations.PUBLISH_SUBSCRIBE) {
 			set.add(itr);
@@ -644,7 +663,6 @@ public class InjectionFederate {
 		}
 		return set;
 	}
-	
 
 	public Set<ObjectClassType> getObjectSubscribe() {
 		Set<ObjectClassType> set = new HashSet<ObjectClassType>();
@@ -674,5 +692,13 @@ public class InjectionFederate {
 			getObjects(set, itr1, pubsub);
 		}
 		return set;
+	}
+
+	public InteractionSet getInteractionSet() {
+		return interactionSet;
+	}
+
+	public void setInteractionSet(InteractionSet interactionSet) {
+		this.interactionSet = interactionSet;
 	}
 }
