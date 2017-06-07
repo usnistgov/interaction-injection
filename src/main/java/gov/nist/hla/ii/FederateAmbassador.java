@@ -68,7 +68,7 @@ public class FederateAmbassador extends NullFederateAmbassador {
 	// removed
 	private LinkedList<String> removedObjectNames = new LinkedList<String>();
 
-	private LinkedList<Interaction> receivedInteractions = new LinkedList<Interaction>();
+	private LinkedList<Interaction1> receivedInteractions = new LinkedList<Interaction1>();
 	private LinkedList<ObjectReflection> receivedObjectReflections = new LinkedList<ObjectReflection>();
 
 	private boolean isTimeAdvancing = false;
@@ -126,7 +126,7 @@ public class FederateAmbassador extends NullFederateAmbassador {
 			LogicalTime theTime, EventRetractionHandle eventRetractionHandle) throws InteractionClassNotKnown,
 			InteractionParameterNotKnown, InvalidFederationTime, FederateInternalError {
 		logger.info("received interaction: handle=" + interactionClass);
-		receivedInteractions.add(new Interaction(interactionClass, theInteraction));
+		receivedInteractions.add(new Interaction1(interactionClass, theInteraction));
 	}
 
 	public void discoverObjectInstance(int theObject, int theObjectClass, String objectName)
@@ -213,7 +213,7 @@ public class FederateAmbassador extends NullFederateAmbassador {
 		return isTimeConstrained;
 	}
 
-	public Interaction nextInteraction() {
+	public Interaction1 nextInteraction() {
 		return receivedInteractions.pollFirst(); // destructive read
 	}
 

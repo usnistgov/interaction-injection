@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import hla.rti.ArrayIndexOutOfBounds;
 import hla.rti.ReceivedInteraction;
 
-public class Interaction {
+public class Interaction1 {
   private class Parameter {
     private int handle;
     private String value;
@@ -27,7 +27,7 @@ public class Interaction {
   private int interactionClass;
   private ArrayList<Parameter> parameters;
   
-  public Interaction(int interactionClass, ReceivedInteraction theInteraction) {
+  public Interaction1(int interactionClass, ReceivedInteraction theInteraction) {
     this.interactionClass = interactionClass;
     this.parameters = new ArrayList<Parameter>(theInteraction.size());
     

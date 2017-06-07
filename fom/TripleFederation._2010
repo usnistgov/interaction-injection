@@ -6,12 +6,12 @@
             <name>HLAobjectRoot</name>
             <objectClass>
                 <name>RTIprivate</name>
-                <sharing>Neither</sharing>
+                <sharing>PublishSubscribe</sharing>
                 <semantics></semantics>
             </objectClass>
             <objectClass>
                 <name>FederateObject</name>
-                <sharing>Neither</sharing>
+                <sharing>PublishSubscribe</sharing>
                 <semantics></semantics>
                 <attribute>
                     <name>FederateHandle</name>
@@ -19,7 +19,7 @@
                     <updateType>NA</updateType>
                     <updateCondition></updateCondition>
                     <ownership>NoTransfer</ownership>
-                    <sharing>Neither</sharing>
+                    <sharing>PublishSubscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -30,7 +30,7 @@
                     <updateType>NA</updateType>
                     <updateCondition></updateCondition>
                     <ownership>NoTransfer</ownership>
-                    <sharing>Neither</sharing>
+                    <sharing>PublishSubscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -41,7 +41,7 @@
                     <updateType>NA</updateType>
                     <updateCondition></updateCondition>
                     <ownership>NoTransfer</ownership>
-                    <sharing>Neither</sharing>
+                    <sharing>PublishSubscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -52,17 +52,16 @@
     <interactions>
         <interactionClass>
             <name>HLAinteractionRoot</name>
-            <sharing>Neither</sharing>
             <interactionClass>
                 <name>RTIprivate</name>
-                <sharing>Neither</sharing>
+                <sharing>PublishSubscribe</sharing>
                 <transportation>HLAreliable</transportation>
                 <order>TimeStamp</order>
                 <semantics></semantics>
             </interactionClass>
             <interactionClass>
                 <name>C2WInteractionRoot</name>
-                <sharing>Neither</sharing>
+                <sharing>PublishSubscribe</sharing>
                 <transportation>HLAreliable</transportation>
                 <order>TimeStamp</order>
                 <semantics></semantics>
@@ -88,7 +87,7 @@
                 </parameter>
                 <interactionClass>
                     <name>ActionBase</name>
-                    <sharing>Neither</sharing>
+                    <sharing>PublishSubscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -115,7 +114,7 @@
                 </interactionClass>
                 <interactionClass>
                     <name>OutcomeBase</name>
-                    <sharing>Neither</sharing>
+                    <sharing>PublishSubscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -142,7 +141,7 @@
                 </interactionClass>
                 <interactionClass>
                     <name>SimLog</name>
-                    <sharing>Neither</sharing>
+                    <sharing>PublishSubscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -183,7 +182,7 @@
                     </parameter>
                     <interactionClass>
                         <name>HighPrio</name>
-                        <sharing>Neither</sharing>
+                        <sharing>PublishSubscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <semantics></semantics>
@@ -225,7 +224,7 @@
                     </interactionClass>
                     <interactionClass>
                         <name>LowPrio</name>
-                        <sharing>Neither</sharing>
+                        <sharing>PublishSubscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <semantics></semantics>
@@ -267,7 +266,7 @@
                     </interactionClass>
                     <interactionClass>
                         <name>MediumPrio</name>
-                        <sharing>Neither</sharing>
+                        <sharing>PublishSubscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <semantics></semantics>
@@ -309,7 +308,7 @@
                     </interactionClass>
                     <interactionClass>
                         <name>VeryLowPrio</name>
-                        <sharing>Neither</sharing>
+                        <sharing>PublishSubscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <semantics></semantics>
@@ -352,7 +351,7 @@
                 </interactionClass>
                 <interactionClass>
                     <name>SimulationControl</name>
-                    <sharing>Neither</sharing>
+                    <sharing>PublishSubscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -378,7 +377,7 @@
                     </parameter>
                     <interactionClass>
                         <name>SimEnd</name>
-                        <sharing>Neither</sharing>
+                        <sharing>PublishSubscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <semantics></semantics>
@@ -405,7 +404,7 @@
                     </interactionClass>
                     <interactionClass>
                         <name>SimPause</name>
-                        <sharing>Neither</sharing>
+                        <sharing>PublishSubscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <semantics></semantics>
@@ -432,7 +431,7 @@
                     </interactionClass>
                     <interactionClass>
                         <name>SimResume</name>
-                        <sharing>Neither</sharing>
+                        <sharing>PublishSubscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <semantics></semantics>
@@ -460,7 +459,7 @@
                 </interactionClass>
                 <interactionClass>
                     <name>Int1</name>
-                    <sharing>Neither</sharing>
+                    <sharing>Publish</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -487,7 +486,7 @@
                 </interactionClass>
                 <interactionClass>
                     <name>Int2</name>
-                    <sharing>Neither</sharing>
+                    <sharing>Publish</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
@@ -514,7 +513,7 @@
                 </interactionClass>
                 <interactionClass>
                     <name>Int3</name>
-                    <sharing>Neither</sharing>
+                    <sharing>Publish</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <semantics></semantics>
