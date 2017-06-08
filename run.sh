@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
+cp -R fom/ target/
 DIR=`pwd`
-cd java-federates/TripleReceiveFederation/target
+cd target
 java -jar \
 -Djava.library.path=nar/processid-0.3.0-SNAPSHOT-amd64-Linux-gpp-jni/lib/amd64-Linux-gpp/jni/ \
 -Djava.net.preferIPv4Stack=true \
-TripleReceiveFederation-0.0.1-SNAPSHOT.jar \
-TripleSend \
-TripleReceive \
-NORMAL
+interaction-injection-0.0.1-SNAPSHOT.jar \
+
 cd $DIR

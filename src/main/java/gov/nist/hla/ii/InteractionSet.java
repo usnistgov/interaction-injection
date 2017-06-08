@@ -25,7 +25,7 @@ public class InteractionSet extends HashMap<Double, List<InteractionDef>> {
 		}
 		list.remove(interactionDef);
 		if (list.size() == 0) {
-			this.remove(timeStep, list);
+//			this.remove(timeStep, list);
 		}
 	}
 }
