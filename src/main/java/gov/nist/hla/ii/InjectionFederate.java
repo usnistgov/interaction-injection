@@ -236,11 +236,11 @@ public class InjectionFederate {
 
 	private void handleMessages() throws RTIAmbassadorException, ContextBrokerException {
 		try {
-			Interaction1 receivedInteraction;
+			Interaction receivedInteraction;
 			while ((receivedInteraction = fedAmb.nextInteraction()) != null) {
 				int interactionHandle = receivedInteraction.getInteractionClassHandle();
 				String interactionName = rtiAmb.getInteractionClassName(interactionHandle);
-				log.debug("received interaction name=" + interactionName);
+				log.info("received interaction handle=" + interactionHandle + " name=" + interactionName);
 
 				HashMap<String, String> parameters = new HashMap<String, String>();
 				for (int i = 0; i < receivedInteraction.getParameterCount(); i++) {
@@ -683,6 +683,7 @@ public class InjectionFederate {
 	}
 
 	public Set<ObjectClassType> getObjects(Set<ObjectClassType> set, ObjectClassType itr, SharingEnumerations pubsub) {
+		itr.getAttribute()
 		if (itr.getSharing().getValue() == pubsub
 				|| itr.getSharing().getValue() == SharingEnumerations.PUBLISH_SUBSCRIBE) {
 			set.add(itr);

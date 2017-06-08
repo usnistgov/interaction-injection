@@ -28,7 +28,7 @@ import hla.rti.jlc.NullFederateAmbassador;
 
 // assume single threaded environment
 public class FederateAmbassador extends NullFederateAmbassador {
-	private static final Logger logger = LogManager.getLogger();
+	private static final Logger log = LogManager.getLogger();
 
 	private final double federateTime = 0.0;
 	private final double federateLookahead = 1.0;
@@ -68,7 +68,7 @@ public class FederateAmbassador extends NullFederateAmbassador {
 	// removed
 	private LinkedList<String> removedObjectNames = new LinkedList<String>();
 
-	private LinkedList<Interaction1> receivedInteractions = new LinkedList<Interaction1>();
+	private LinkedList<Interaction> receivedInteractions = new LinkedList<Interaction>();
 	private LinkedList<ObjectReflection> receivedObjectReflections = new LinkedList<ObjectReflection>();
 
 	private boolean isTimeAdvancing = false;
@@ -80,37 +80,37 @@ public class FederateAmbassador extends NullFederateAmbassador {
 	public void announceSynchronizationPoint(String synchronizationPointLabel, byte[] userSuppliedTag)
 			throws FederateInternalError {
 		if (pendingSynchronizationPoints.contains(synchronizationPointLabel)) {
-			logger.warn("duplicate announcement of synchronization point: " + synchronizationPointLabel);
+			log.warn("duplicate announcement of synchronization point: " + synchronizationPointLabel);
 		} else {
 			pendingSynchronizationPoints.add(synchronizationPointLabel);
-			logger.info("synchronization point announced: " + synchronizationPointLabel);
+			log.info("synchronization point announced: " + synchronizationPointLabel);
 		}
 	}
 
 	public void federationSynchronized(String synchronizationPointLabel) throws FederateInternalError {
 		pendingSynchronizationPoints.remove(synchronizationPointLabel);
-		logger.info("synchronization point achieved: " + synchronizationPointLabel);
+		log.info("synchronization point achieved: " + synchronizationPointLabel);
 	}
 
 	public void timeRegulationEnabled(LogicalTime theFederateTime)
 			throws InvalidFederationTime, EnableTimeRegulationWasNotPending, FederateInternalError {
 		isTimeRegulating = true;
 		logicalTime = convertTime(theFederateTime);
-		logger.info("time regulation enabled: t=" + logicalTime);
+		log.info("time regulation enabled: t=" + logicalTime);
 	}
 
 	public void timeConstrainedEnabled(LogicalTime theFederateTime)
 			throws InvalidFederationTime, EnableTimeConstrainedWasNotPending, FederateInternalError {
 		isTimeConstrained = true;
 		logicalTime = convertTime(theFederateTime);
-		logger.info("time constrained enabled: t=" + logicalTime);
+		log.info("time constrained enabled: t=" + logicalTime);
 	}
 
 	public void timeAdvanceGrant(LogicalTime theTime)
 			throws InvalidFederationTime, TimeAdvanceWasNotInProgress, FederateInternalError {
 		isTimeAdvancing = false;
 		logicalTime = convertTime(theTime);
-		logger.info("time advance granted: t=" + logicalTime);
+		log.info("time advance granted: t=" + logicalTime);
 	}
 
 	public void receiveInteraction(int interactionClass, ReceivedInteraction theInteraction, byte[] userSuppliedTag)
@@ -125,13 +125,13 @@ public class FederateAmbassador extends NullFederateAmbassador {
 	public void receiveInteraction(int interactionClass, ReceivedInteraction theInteraction, byte[] userSuppliedTag,
 			LogicalTime theTime, EventRetractionHandle eventRetractionHandle) throws InteractionClassNotKnown,
 			InteractionParameterNotKnown, InvalidFederationTime, FederateInternalError {
-		logger.info("received interaction: handle=" + interactionClass);
-		receivedInteractions.add(new Interaction1(interactionClass, theInteraction));
+		log.info("received interaction: handle=" + interactionClass);
+		receivedInteractions.add(new Interaction(interactionClass, theInteraction));
 	}
 
 	public void discoverObjectInstance(int theObject, int theObjectClass, String objectName)
 			throws CouldNotDiscover, ObjectClassNotKnown, FederateInternalError {
-		logger.info("discovered new object instance: (handle, class, name)=" + "(" + theObject + ", " + theObjectClass
+		log.info("discovered new object instance: (handle, class, name)=" + "(" + theObject + ", " + theObjectClass
 				+ ", " + objectName + ")");
 		if (objectInstances.put(theObject, new ObjectDetails(theObject, theObjectClass, objectName)) != null) {
 			throw new FederateInternalError("discovered multiple object instances with handle " + theObject);
@@ -157,7 +157,7 @@ public class FederateAmbassador extends NullFederateAmbassador {
 		int theObjectClass = details.getObjectClass();
 		String objectName = details.getObjectName();
 		receivedObjectReflections.add(new ObjectReflection(theObjectClass, objectName, theAttributes));
-		logger.info("received object reflection for the object instance " + objectName);
+		log.info("received object reflection for the object instance " + objectName);
 	}
 
 	public void removeObjectInstance(int theObject, byte[] userSuppliedTag)
@@ -178,7 +178,7 @@ public class FederateAmbassador extends NullFederateAmbassador {
 		}
 		String objectName = details.getObjectName();
 		removedObjectNames.add(objectName);
-		logger.info("received notice to remove object instance with handle=" + theObject + " and name=" + objectName);
+		log.info("received notice to remove object instance with handle=" + theObject + " and name=" + objectName);
 	}
 
 	public boolean isSynchronizationPointPending(String label) {
@@ -213,7 +213,7 @@ public class FederateAmbassador extends NullFederateAmbassador {
 		return isTimeConstrained;
 	}
 
-	public Interaction1 nextInteraction() {
+	public Interaction nextInteraction() {
 		return receivedInteractions.pollFirst(); // destructive read
 	}
 
