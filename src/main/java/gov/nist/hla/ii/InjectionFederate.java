@@ -17,7 +17,6 @@ import hla.rti.FederationExecutionDoesNotExist;
 import hla.rti.InteractionClassNotDefined;
 import hla.rti.InteractionClassNotPublished;
 import hla.rti.InteractionParameterNotDefined;
-import hla.rti.LogicalTime;
 import hla.rti.NameNotFound;
 import hla.rti.ObjectClassNotDefined;
 import hla.rti.ObjectClassNotPublished;
@@ -37,9 +36,9 @@ import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -64,8 +63,9 @@ public class InjectionFederate {
 	private static final Logger log = LogManager
 			.getLogger(InjectionFederate.class);
 
-	private static final String INTERACTION_NAME_ROOT = "InteractionRoot.C2WInteractionRoot";
-	private static final String OBJECT_NAME_ROOT = "ObjectRoot";
+	// private static final String INTERACTION_NAME_ROOT =
+	// "InteractionRoot.C2WInteractionRoot";
+	// private static final String OBJECT_NAME_ROOT = "ObjectRoot";
 	private static final String SIMULATION_END = "InteractionRoot.C2WInteractionRoot.SimulationControl.SimEnd";
 	private static final String READY_TO_POPULATE = "readyToPopulate";
 	private static final String READY_TO_RUN = "readyToRun";
@@ -79,6 +79,7 @@ public class InjectionFederate {
 	}
 
 	private State state = State.CONSTRUCTED;
+	private Double newLogicalTime;
 
 	RTIambassador getRtiAmb() {
 		return rtiAmb;
@@ -96,15 +97,17 @@ public class InjectionFederate {
 	private HashSet<String> discoveredObjects = new HashSet<String>();
 
 	// set of interaction classes that have been created as injectable entities
-//	private HashSet<String> initializedInteractions = new HashSet<String>();
+	// private HashSet<String> initializedInteractions = new HashSet<String>();
 
 	private String federateName;
 	private String federationName;
 	private static String fomFilePath;
 
-//	private FederateCallback callBack;
+	// private FederateCallback callBack;
 
-//	private InteractionSet interactionSet;
+	private InterObjSet interObjSet;
+
+	private InterObjReception ior = new DefaultInterObjReceptionImpl();
 
 	public String getFomFilePath() {
 		return fomFilePath;
@@ -198,31 +201,31 @@ public class InjectionFederate {
 			enableTimeConstrained();
 			enableTimeRegulation();
 			publishAndSubscribe();
-			String objectName = String
-					.format("%s.%s", OBJECT_NAME_ROOT, "Obj1");
-			String[] attrs = { "Obj1Attr1" };
-			int objectHandle = publishObject(objectName, attrs);
-			int instanceHandle = registerObject(objectName);
 
 			synchronize(READY_TO_POPULATE);
 			synchronize(READY_TO_RUN);
 			log.trace("enter while==>");
 
-			int i = 0;
 			while (state != State.TERMINATING) {
 				log.trace("handleMessages==>");
 				handleMessages();
-				// doInjectsUpdates();
 				log.trace("injectInteraction==>");
-				Map<String, String> params = new HashMap<String, String>(); // InteractionFactory.createParameters();
-				log.trace("params==>" + params.size());
-				injectInteraction(
-						String.format("%s.%s", INTERACTION_NAME_ROOT, "Int1"),
-						params);
-				log.info("injectObject==>");
-				Map<String, String> attrMap = new HashMap<String, String>();
-				attrMap.put(attrs[0], "XXX" + i++);
-				updateObject(objectHandle, instanceHandle, attrMap);
+				
+				List<InteractionDef> interactions = interObjSet
+						.getInteractions(newLogicalTime);
+
+				for (InteractionDef def : interactions) {
+					injectInteraction(def);
+				}
+				
+				log.trace("injectObjects==>");
+				List<ObjectDef> objects = interObjSet
+						.getObjects(newLogicalTime);
+
+				for (ObjectDef def : objects) {
+					updateObject(def);
+				}
+				
 				log.trace("advanceLogicalTime==>");
 				advanceLogicalTime();
 			}
@@ -245,8 +248,7 @@ public class InjectionFederate {
 		}
 	}
 
-	private void handleMessages() throws RTIAmbassadorException,
-			ContextBrokerException {
+	private void handleMessages() throws RTIAmbassadorException {
 		try {
 			Interaction receivedInteraction;
 			while ((receivedInteraction = fedAmb.nextInteraction()) != null) {
@@ -254,22 +256,23 @@ public class InjectionFederate {
 						.getInteractionClassHandle();
 				String interactionName = rtiAmb
 						.getInteractionClassName(interactionHandle);
-				log.info("received interaction handle=" + interactionHandle
-						+ " name=" + interactionName);
-
-				HashMap<String, String> parameters = new HashMap<String, String>();
-				for (int i = 0; i < receivedInteraction.getParameterCount(); i++) {
-					int parameterHandle = receivedInteraction
-							.getParameterHandle(i);
-					String parameterName = rtiAmb.getParameterName(
-							parameterHandle, interactionHandle);
-					String parameterValue = receivedInteraction
-							.getParameterValue(i);
-					log.debug(parameterName + "=" + parameterValue);
-					parameters.put(parameterName, parameterValue);
-				}
-
-				// handleInteraction(interactionName, parameters);
+				ior.receiveInteraction(receivedInteraction, rtiAmb);
+				// log.info("received interaction handle=" + interactionHandle
+				// + " name=" + interactionName);
+				//
+				// HashMap<String, String> parameters = new HashMap<String,
+				// String>();
+				// for (int i = 0; i < receivedInteraction.getParameterCount();
+				// i++) {
+				// int parameterHandle = receivedInteraction
+				// .getParameterHandle(i);
+				// String parameterName = rtiAmb.getParameterName(
+				// parameterHandle, interactionHandle);
+				// String parameterValue = receivedInteraction
+				// .getParameterValue(i);
+				// log.debug(parameterName + "=" + parameterValue);
+				// parameters.put(parameterName, parameterValue);
+				// }
 
 				if (interactionName.equals(SIMULATION_END)) {
 					changeState(State.TERMINATING);
@@ -278,26 +281,28 @@ public class InjectionFederate {
 
 			ObjectReflection receivedObjectReflection;
 			while ((receivedObjectReflection = fedAmb.nextObjectReflection()) != null) {
-				int objectClassHandle = receivedObjectReflection
-						.getObjectClass();
-				String objectClassName = rtiAmb
-						.getObjectClassName(objectClassHandle);
-				String objectName = receivedObjectReflection.getObjectName();
-				log.debug("received object class=" + objectClassName
-						+ ", name=" + objectName);
-
-				HashMap<String, String> attributes = new HashMap<String, String>();
-				for (int i = 0; i < receivedObjectReflection
-						.getAttributeCount(); i++) {
-					int attributeHandle = receivedObjectReflection
-							.getAttributeHandle(i);
-					String attributeName = rtiAmb.getAttributeName(
-							attributeHandle, objectClassHandle);
-					String attributeValue = receivedObjectReflection
-							.getAttributeValue(i);
-					log.debug(attributeName + "=" + attributeValue);
-					attributes.put(attributeName, attributeValue);
-				}
+				ior.receiveObject(receivedObjectReflection, rtiAmb);
+				// int objectClassHandle = receivedObjectReflection
+				// .getObjectClass();
+				// String objectClassName = rtiAmb
+				// .getObjectClassName(objectClassHandle);
+				// String objectName = receivedObjectReflection.getObjectName();
+				// log.debug("received object class=" + objectClassName
+				// + ", name=" + objectName);
+				//
+				// HashMap<String, String> attributes = new HashMap<String,
+				// String>();
+				// for (int i = 0; i < receivedObjectReflection
+				// .getAttributeCount(); i++) {
+				// int attributeHandle = receivedObjectReflection
+				// .getAttributeHandle(i);
+				// String attributeName = rtiAmb.getAttributeName(
+				// attributeHandle, objectClassHandle);
+				// String attributeValue = receivedObjectReflection
+				// .getAttributeValue(i);
+				// log.debug(attributeName + "=" + attributeValue);
+				// attributes.put(attributeName, attributeValue);
+				// }
 				log.trace("<==handleMessages");
 				// handleObjectReflection(objectClassName, objectName,
 				// attributes);
@@ -461,6 +466,10 @@ public class InjectionFederate {
 		}
 	}
 
+	public void injectInteraction(InteractionDef def) {
+		injectInteraction(def.getName(), def.getParameters());
+	}
+
 	public void injectInteraction(String interactionName,
 			Map<String, String> parameters) {
 		int interactionHandle;
@@ -512,14 +521,19 @@ public class InjectionFederate {
 		return suppliedParameters;
 	}
 
-	public void updateObject(String objectName, Map<String, String> attributes) {
-		String objectFullName = String.format("%s.%s", OBJECT_NAME_ROOT,
-				objectName);
-		int objectHandle = publishObject(objectFullName, (String[]) attributes
-				.keySet().toArray());
-		int instanceHandle = registerObject(objectFullName);
-		updateObject(objectHandle, instanceHandle, attributes);
+	public void updateObject(ObjectDef def) {
+		updateObject(def.getObjectHandle(), def.getInstanceHandle(),
+				def.getParameters());
 	}
+
+//	public void updateObject(String objectName, Map<String, String> attributes) {
+//		String objectFullName = String.format("%s.%s", OBJECT_NAME_ROOT,
+//				objectName);
+//		int objectHandle = publishObject(objectFullName, (String[]) attributes
+//				.keySet().toArray());
+//		int instanceHandle = registerObject(objectFullName);
+//		updateObject(objectHandle, instanceHandle, attributes);
+//	}
 
 	public void updateObject(int classHandle, int objectHandle,
 			Map<String, String> attributes) {
@@ -573,12 +587,17 @@ public class InjectionFederate {
 		return suppliedAttributes;
 	}
 
-//	private int publishObject(String objectName, Map<String, String> attributes) {
-//
-//		return 0;
-//	}
+	// private int publishObject(String objectName, Map<String, String>
+	// attributes) {
+	//
+	// return 0;
+	// }
+	public int publishObject(String objectName, Map<String, String> attrMap) {
+		String[] attrs = (String[]) attrMap.keySet().toArray();
+		return publishObject(objectName, attrs);
+	}
 
-	private int publishObject(String objectName, String... attributes) {
+	public int publishObject(String objectName, String... attributes) {
 		int objectHandle = 0;
 		try {
 			objectHandle = rtiAmb.getObjectClassHandle(objectName);
@@ -591,7 +610,7 @@ public class InjectionFederate {
 			}
 			rtiAmb.publishObjectClass(objectHandle, attributeSet);
 		} catch (NameNotFound | FederateNotExecutionMember | RTIinternalError e) {
-			log.error("", e);
+			log.error(e);
 		} catch (ObjectClassNotDefined e) {
 			log.error("", e);
 		} catch (AttributeNotDefined e) {
@@ -608,7 +627,7 @@ public class InjectionFederate {
 		return objectHandle;
 	}
 
-	private int registerObject(String objName) {
+	public int registerObject(String objName) {
 		int classHandle;
 		try {
 			classHandle = rtiAmb.getObjectClassHandle(objName);
@@ -630,9 +649,9 @@ public class InjectionFederate {
 		return -1;
 	}
 
-//	private LogicalTime convertTime(double time) {
-//		return new DoubleTime(time);
-//	}
+	// private LogicalTime convertTime(double time) {
+	// return new DoubleTime(time);
+	// }
 
 	private double getLbts() {
 		return fedAmb.getFederateTime() + fedAmb.getFederateLookahead();
@@ -666,7 +685,7 @@ public class InjectionFederate {
 
 	private void advanceLogicalTime() throws RTIAmbassadorException,
 			ContextBrokerException {
-		Double newLogicalTime = fedAmb.getLogicalTime() + stepsize;
+		newLogicalTime = fedAmb.getLogicalTime() + stepsize;
 		log.info("advancing logical time to " + newLogicalTime);
 		try {
 			fedAmb.setTimeAdvancing();
@@ -770,14 +789,14 @@ public class InjectionFederate {
 		return oct;
 	}
 
-//	public InteractionSet getInteractionSet() {
-//		return interactionSet;
-//	}
+	// public InteractionSet getInteractionSet() {
+	// return interactionSet;
+	// }
 
-//	public void setInteractionSet(InteractionSet interactionSet) {
-//		this.interactionSet = interactionSet;
-//	}
-	
+	// public void setInteractionSet(InteractionSet interactionSet) {
+	// this.interactionSet = interactionSet;
+	// }
+
 	public static void main(String args[]) {
 		if (args.length != 1) {
 			log.error("command line argument for properties file not specified");

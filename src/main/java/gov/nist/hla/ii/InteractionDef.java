@@ -4,31 +4,19 @@ import java.util.Map;
 
 public class InteractionDef {
 	
-	public enum TYPE {INTERACTION, OBJECT};
+	protected final String name;
+	protected final Map<String, String> parameters;
 	
-	public final TYPE type;
-	private String name;
-	private Map<String, String> parameters;
-	
-	public InteractionDef(TYPE type) {
-		super();
-		this.type = type;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
+	public InteractionDef(String name, Map<String, String> parameters) {
 		this.name = name;
-	}
-	public Map<String, String> getParameters() {
-		return parameters;
-	}
-	public void setParameters(Map<String, String> parameters) {
 		this.parameters = parameters;
 	}
 
-	public TYPE getType() {
-		return type;
+	public String getName() {
+		return name;
+	}
+	
+	public Map<String, String> getParameters() {
+		return parameters;
 	}
 }
