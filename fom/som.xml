@@ -5,13 +5,17 @@
 	<objects>
 		<objectClass>
 			<name>ObjectRoot</name>
-			<sharing>Neither</sharing>
 			<objectClass>
 				<name>Obj1</name>
 				<attribute>
 					<name>Obj1Attr1</name>
 					<dataType>String</dataType>
 					<sharing>Subscribe</sharing>
+				</attribute>
+				<attribute>
+					<name>Obj1Attr2</name>
+					<dataType>String</dataType>
+					<sharing>Neither</sharing>
 				</attribute>
 			</objectClass>
 			<objectClass>

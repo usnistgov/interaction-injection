@@ -18,6 +18,7 @@ import gov.nist.hla.ii.exception.PropertyNotAssigned;
 import gov.nist.hla.ii.exception.PropertyNotFound;
 import gov.nist.hla.ii.exception.RTIAmbassadorException;
 
+// Tests herein require a fom file populated to a specific state.  The file in question is fom/som.xml.
 public class InjectionFederateTest {
 
 	static InjectionFederate sut;
@@ -47,19 +48,6 @@ public class InjectionFederateTest {
 			e.printStackTrace();
 		}
 	}
-
-	@Test
-	public void testInteractionCount() {
-		try {
-			sut.loadConfiguration(CONFIG_FILE);
-			assertEquals(3, sut.getFom().getInteractions().getInteractionClass().getInteractionClass().size());
-			for (InteractionClassType itr : sut.getFom().getInteractions().getInteractionClass().getInteractionClass()) {
-				System.out.println(itr.getName().getValue());
-			}
-		} catch (IOException | PropertyNotFound | PropertyNotAssigned e) {
-			e.printStackTrace();
-		}
-	}
 	
 	@Test
 	public void testGetInteractionSubscribe() {
@@ -67,9 +55,6 @@ public class InjectionFederateTest {
 			sut.loadConfiguration(CONFIG_FILE);
 			Set<InteractionClassType> set = sut.getInteractionSubscribe();
 			assertEquals(2, set.size());
-			for (InteractionClassType ict : set) {
-				System.out.println(ict.getName().getValue());
-			}
 		} catch (IOException | PropertyNotFound | PropertyNotAssigned e) {
 			e.printStackTrace();
 		}
@@ -81,15 +66,12 @@ public class InjectionFederateTest {
 			sut.loadConfiguration(CONFIG_FILE);
 			Set<InteractionClassType> set = sut.getInteractionPublish();
 			assertEquals(2, set.size());
-			for (InteractionClassType ict : set) {
-				System.out.println(ict.getName().getValue());
-			}
 		} catch (IOException | PropertyNotFound | PropertyNotAssigned e) {
 			e.printStackTrace();
 		}
 	}
 	
-//	@Test
+	@Test
 	public void testGetObjectSubscribe() {
 		try {
 			sut.loadConfiguration(CONFIG_FILE);
@@ -97,13 +79,14 @@ public class InjectionFederateTest {
 			assertEquals(2, set.size());
 			for (ObjectClassType oct : set) {
 				System.out.println(oct.getName().getValue());
+				assertEquals(1, oct.getAttribute().size());
 			}
 		} catch (IOException | PropertyNotFound | PropertyNotAssigned e) {
 			e.printStackTrace();
 		}
 	}
 	
-//	@Test
+	@Test
 	public void testGetObjectPublish() {
 		try {
 			sut.loadConfiguration(CONFIG_FILE);
@@ -111,6 +94,7 @@ public class InjectionFederateTest {
 			assertEquals(2, set.size());
 			for (ObjectClassType oct : set) {
 				System.out.println(oct.getName().getValue());
+				assertEquals(1, oct.getAttribute().size());
 			}
 		} catch (IOException | PropertyNotFound | PropertyNotAssigned e) {
 			e.printStackTrace();
