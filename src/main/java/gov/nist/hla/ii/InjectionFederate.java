@@ -1,7 +1,6 @@
 package gov.nist.hla.ii;
 
 import emf.sds.Deserialize;
-import gov.nist.hla.ii.exception.ContextBrokerException;
 import gov.nist.hla.ii.exception.PropertyNotAssigned;
 import gov.nist.hla.ii.exception.PropertyNotFound;
 import gov.nist.hla.ii.exception.RTIAmbassadorException;
@@ -36,6 +35,7 @@ import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -59,13 +59,10 @@ import org.portico.impl.hla13.types.DoubleTime;
 import org.portico.impl.hla13.types.DoubleTimeInterval;
 
 // assume that SIMULATION_END is not sent as a Receive Order message
-public class InjectionFederate {
+public class InjectionFederate implements Runnable {
 	private static final Logger log = LogManager
 			.getLogger(InjectionFederate.class);
 
-	// private static final String INTERACTION_NAME_ROOT =
-	// "InteractionRoot.C2WInteractionRoot";
-	// private static final String OBJECT_NAME_ROOT = "ObjectRoot";
 	private static final String SIMULATION_END = "InteractionRoot.C2WInteractionRoot.SimulationControl.SimEnd";
 	private static final String READY_TO_POPULATE = "readyToPopulate";
 	private static final String READY_TO_RUN = "readyToRun";
@@ -96,18 +93,15 @@ public class InjectionFederate {
 	// set of object names that have been created as injectable entities
 	private HashSet<String> discoveredObjects = new HashSet<String>();
 
-	// set of interaction classes that have been created as injectable entities
-	// private HashSet<String> initializedInteractions = new HashSet<String>();
-
 	private String federateName;
 	private String federationName;
 	private static String fomFilePath;
 
 	// private FederateCallback callBack;
 
-	private InterObjSet interObjSet;
+	private InterObjInjection interObjectInjection;
 
-	private InterObjReception ior = new DefaultInterObjReceptionImpl();
+	private InterObjReception interObjectReception;
 
 	public String getFomFilePath() {
 		return fomFilePath;
@@ -148,6 +142,30 @@ public class InjectionFederate {
 		fedAmb = new FederateAmbassador();
 	}
 
+	public void init() {
+		if (state != State.INITIALIZED) {
+			throw new IllegalStateException(
+					"execute cannot be called in the current state: "
+							+ state.name());
+		}
+
+		try {
+			joinFederationExecution();
+			changeState(State.JOINED);
+
+			enableAsynchronousDelivery();
+			enableTimeConstrained();
+			enableTimeRegulation();
+			publishAndSubscribe();
+
+			synchronize(READY_TO_POPULATE);
+			synchronize(READY_TO_RUN);
+			log.trace("enter while==>");
+		} catch (InterruptedException | RTIAmbassadorException e) {
+			log.error(e);
+		}
+	}
+
 	public void loadConfiguration(String filepath) throws IOException,
 			PropertyNotFound, PropertyNotAssigned {
 		if (state != State.CONSTRUCTED && state != State.INITIALIZED) {
@@ -169,7 +187,6 @@ public class InjectionFederate {
 		log.debug("lookahead=" + lookahead);
 		stepsize = configuration.getRequiredPropertyAsDouble("stepsize");
 		log.debug("stepsize=" + stepsize);
-		String dataFilePath = configuration.getRequiredProperty("data-file");
 
 		fom = loadFOM();
 
@@ -184,51 +201,52 @@ public class InjectionFederate {
 		}
 	}
 
-	public void execute() throws RTIAmbassadorException,
-			ContextBrokerException, InterruptedException {
-		log.trace("execute==>");
-		if (state != State.INITIALIZED) {
-			throw new IllegalStateException(
-					"execute cannot be called in the current state: "
-							+ state.name());
-		}
-
+	public void run() {
+		log.trace("run==>");
+		// if (state != State.INITIALIZED) {
+		// throw new IllegalStateException(
+		// "execute cannot be called in the current state: "
+		// + state.name());
+		// }
+		//
+		// try {
+		// joinFederationExecution();
+		// changeState(State.JOINED);
+		//
+		// enableAsynchronousDelivery();
+		// enableTimeConstrained();
+		// enableTimeRegulation();
+		// publishAndSubscribe();
+		//
+		// synchronize(READY_TO_POPULATE);
+		// synchronize(READY_TO_RUN);
+		// log.trace("enter while==>");
 		try {
-			joinFederationExecution();
-			changeState(State.JOINED);
-
-			enableAsynchronousDelivery();
-			enableTimeConstrained();
-			enableTimeRegulation();
-			publishAndSubscribe();
-
-			synchronize(READY_TO_POPULATE);
-			synchronize(READY_TO_RUN);
-			log.trace("enter while==>");
-
 			while (state != State.TERMINATING) {
 				log.trace("handleMessages==>");
 				handleMessages();
-				log.trace("injectInteraction==>");
-				
-				List<InteractionDef> interactions = interObjSet
-						.getInteractions(newLogicalTime);
 
+				log.trace("injectInteraction==>");
+				List<InteractionDef> interactions = interObjectInjection
+						.getInteractions(newLogicalTime);
 				for (InteractionDef def : interactions) {
+					log.trace("def=" + def);
 					injectInteraction(def);
 				}
-				
-				log.trace("injectObjects==>");
-				List<ObjectDef> objects = interObjSet
-						.getObjects(newLogicalTime);
 
+				log.trace("injectObjects==>");
+				List<ObjectDef> objects = interObjectInjection
+						.getObjects(newLogicalTime);
 				for (ObjectDef def : objects) {
+					log.trace("def=" + def);
 					updateObject(def);
 				}
-				
+
 				log.trace("advanceLogicalTime==>");
 				advanceLogicalTime();
 			}
+		} catch (RTIAmbassadorException e) {
+			log.error(e);
 		} finally {
 			try {
 				switch (state) {
@@ -256,23 +274,9 @@ public class InjectionFederate {
 						.getInteractionClassHandle();
 				String interactionName = rtiAmb
 						.getInteractionClassName(interactionHandle);
-				ior.receiveInteraction(receivedInteraction, rtiAmb);
-				// log.info("received interaction handle=" + interactionHandle
-				// + " name=" + interactionName);
-				//
-				// HashMap<String, String> parameters = new HashMap<String,
-				// String>();
-				// for (int i = 0; i < receivedInteraction.getParameterCount();
-				// i++) {
-				// int parameterHandle = receivedInteraction
-				// .getParameterHandle(i);
-				// String parameterName = rtiAmb.getParameterName(
-				// parameterHandle, interactionHandle);
-				// String parameterValue = receivedInteraction
-				// .getParameterValue(i);
-				// log.debug(parameterName + "=" + parameterValue);
-				// parameters.put(parameterName, parameterValue);
-				// }
+				Map<String, String> parameters = mapParameters(receivedInteraction);
+				interObjectReception.receiveInteraction(interactionName,
+						parameters);
 
 				if (interactionName.equals(SIMULATION_END)) {
 					changeState(State.TERMINATING);
@@ -281,31 +285,17 @@ public class InjectionFederate {
 
 			ObjectReflection receivedObjectReflection;
 			while ((receivedObjectReflection = fedAmb.nextObjectReflection()) != null) {
-				ior.receiveObject(receivedObjectReflection, rtiAmb);
-				// int objectClassHandle = receivedObjectReflection
-				// .getObjectClass();
-				// String objectClassName = rtiAmb
-				// .getObjectClassName(objectClassHandle);
-				// String objectName = receivedObjectReflection.getObjectName();
-				// log.debug("received object class=" + objectClassName
-				// + ", name=" + objectName);
-				//
-				// HashMap<String, String> attributes = new HashMap<String,
-				// String>();
-				// for (int i = 0; i < receivedObjectReflection
-				// .getAttributeCount(); i++) {
-				// int attributeHandle = receivedObjectReflection
-				// .getAttributeHandle(i);
-				// String attributeName = rtiAmb.getAttributeName(
-				// attributeHandle, objectClassHandle);
-				// String attributeValue = receivedObjectReflection
-				// .getAttributeValue(i);
-				// log.debug(attributeName + "=" + attributeValue);
-				// attributes.put(attributeName, attributeValue);
-				// }
+				int objectClassHandle = receivedObjectReflection
+						.getObjectClass();
+				String objectClassName = rtiAmb
+						.getObjectClassName(objectClassHandle);
+				String objectName = receivedObjectReflection.getObjectName();
+				Map<String, String> parameters = mapAttributes(
+						objectClassHandle, receivedObjectReflection);
+				interObjectReception.receiveObject(objectClassName, objectName,
+						parameters);
 				log.trace("<==handleMessages");
-				// handleObjectReflection(objectClassName, objectName,
-				// attributes);
+
 			}
 
 			String removedObjectName;
@@ -323,7 +313,47 @@ public class InjectionFederate {
 		}
 	}
 
-	private void tick() throws RTIAmbassadorException, ContextBrokerException {
+	Map<String, String> mapParameters(Interaction receivedInteraction) {
+		int interactionHandle = receivedInteraction.getInteractionClassHandle();
+		Map<String, String> parameters = null;
+		try {
+			parameters = new HashMap<String, String>();
+			for (int i = 0; i < receivedInteraction.getParameterCount(); i++) {
+				int parameterHandle = receivedInteraction.getParameterHandle(i);
+				String parameterName = rtiAmb.getParameterName(parameterHandle,
+						interactionHandle);
+				String parameterValue = receivedInteraction
+						.getParameterValue(i);
+				log.debug(parameterName + "=" + parameterValue);
+				parameters.put(parameterName, parameterValue);
+			}
+		} catch (RTIexception e) {
+			log.error("", e);
+		}
+		return parameters;
+	}
+
+	Map<String, String> mapAttributes(int objectClassHandle,
+			ObjectReflection receivedObjectReflection) {
+		Map<String, String> attributes = new HashMap<String, String>();
+		try {
+			for (int i = 0; i < receivedObjectReflection.getAttributeCount(); i++) {
+				int attributeHandle = receivedObjectReflection
+						.getAttributeHandle(i);
+				String attributeName = rtiAmb.getAttributeName(attributeHandle,
+						objectClassHandle);
+				String attributeValue = receivedObjectReflection
+						.getAttributeValue(i);
+				log.debug(attributeName + "=" + attributeValue);
+				attributes.put(attributeName, attributeValue);
+			}
+		} catch (RTIexception e) {
+			log.error("", e);
+		}
+		return attributes;
+	}
+
+	private void tick() throws RTIAmbassadorException {
 		try {
 			rtiAmb.tick();
 		} catch (RTIexception e) {
@@ -373,8 +403,7 @@ public class InjectionFederate {
 		}
 	}
 
-	private void enableTimeConstrained() throws RTIAmbassadorException,
-			ContextBrokerException {
+	private void enableTimeConstrained() throws RTIAmbassadorException {
 		try {
 			log.info("enabling time constrained");
 			rtiAmb.enableTimeConstrained();
@@ -390,8 +419,7 @@ public class InjectionFederate {
 		}
 	}
 
-	private void enableTimeRegulation() throws RTIAmbassadorException,
-			ContextBrokerException {
+	private void enableTimeRegulation() throws RTIAmbassadorException {
 		try {
 			log.info("enabling time regulation");
 			rtiAmb.enableTimeRegulation(
@@ -522,18 +550,9 @@ public class InjectionFederate {
 	}
 
 	public void updateObject(ObjectDef def) {
-		updateObject(def.getObjectHandle(), def.getInstanceHandle(),
+		updateObject(def.getClassHandle(), def.getObjectHandle(),
 				def.getParameters());
 	}
-
-//	public void updateObject(String objectName, Map<String, String> attributes) {
-//		String objectFullName = String.format("%s.%s", OBJECT_NAME_ROOT,
-//				objectName);
-//		int objectHandle = publishObject(objectFullName, (String[]) attributes
-//				.keySet().toArray());
-//		int instanceHandle = registerObject(objectFullName);
-//		updateObject(objectHandle, instanceHandle, attributes);
-//	}
 
 	public void updateObject(int classHandle, int objectHandle,
 			Map<String, String> attributes) {
@@ -587,13 +606,12 @@ public class InjectionFederate {
 		return suppliedAttributes;
 	}
 
-	// private int publishObject(String objectName, Map<String, String>
-	// attributes) {
-	//
-	// return 0;
+	// public int publishObject(ObjectDef def) {
+	// return publishObject(def.getName(), def.getParameters());
 	// }
+
 	public int publishObject(String objectName, Map<String, String> attrMap) {
-		String[] attrs = (String[]) attrMap.keySet().toArray();
+		String[] attrs = (String[]) attrMap.keySet().toArray(new String[0]);
 		return publishObject(objectName, attrs);
 	}
 
@@ -627,6 +645,10 @@ public class InjectionFederate {
 		return objectHandle;
 	}
 
+	public int registerObject(ObjectDef def) {
+		return registerObject(def.getName());
+	}
+
 	public int registerObject(String objName) {
 		int classHandle;
 		try {
@@ -649,10 +671,6 @@ public class InjectionFederate {
 		return -1;
 	}
 
-	// private LogicalTime convertTime(double time) {
-	// return new DoubleTime(time);
-	// }
-
 	private double getLbts() {
 		return fedAmb.getFederateTime() + fedAmb.getFederateLookahead();
 	}
@@ -661,8 +679,7 @@ public class InjectionFederate {
 		return ("" + System.currentTimeMillis()).getBytes();
 	}
 
-	private void synchronize(String label) throws RTIAmbassadorException,
-			ContextBrokerException {
+	private void synchronize(String label) throws RTIAmbassadorException {
 		log.info("waiting for announcement of the synchronization point "
 				+ label);
 		while (fedAmb.isSynchronizationPointPending(label) == false) {
@@ -683,8 +700,7 @@ public class InjectionFederate {
 		log.info("federation synchronized on " + label);
 	}
 
-	private void advanceLogicalTime() throws RTIAmbassadorException,
-			ContextBrokerException {
+	private void advanceLogicalTime() throws RTIAmbassadorException {
 		newLogicalTime = fedAmb.getLogicalTime() + stepsize;
 		log.info("advancing logical time to " + newLogicalTime);
 		try {
@@ -789,28 +805,19 @@ public class InjectionFederate {
 		return oct;
 	}
 
-	// public InteractionSet getInteractionSet() {
-	// return interactionSet;
-	// }
+	public InterObjInjection getInterObjectInjection() {
+		return interObjectInjection;
+	}
 
-	// public void setInteractionSet(InteractionSet interactionSet) {
-	// this.interactionSet = interactionSet;
-	// }
+	public void setInterObjectInjection(InterObjInjection interObjectInjection) {
+		this.interObjectInjection = interObjectInjection;
+	}
 
-	public static void main(String args[]) {
-		if (args.length != 1) {
-			log.error("command line argument for properties file not specified");
-			args = new String[1];
-			args[0] = "config.properties";
-		}
+	public InterObjReception getInterObjectReception() {
+		return interObjectReception;
+	}
 
-		try {
-			InjectionFederate federate = new InjectionFederate();
-			federate.loadConfiguration(args[0]);
-
-			federate.execute();
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
+	public void setInterObjectReception(InterObjReception interObjectReception) {
+		this.interObjectReception = interObjectReception;
 	}
 }

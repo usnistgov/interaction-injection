@@ -4,22 +4,22 @@ import java.util.Map;
 
 public class ObjectDef extends InteractionDef {
 
+	private final int classHandle;
+
 	private final int objectHandle;
 
-	private final int instanceHandle;
-
-	public ObjectDef(String name, int objectHandle, int instanceHandle,
+	public ObjectDef(String name, int classHandle, int objectHandle, 
 			Map<String, String> parameters) {
 		super(name, parameters);
+		this.classHandle = classHandle;
 		this.objectHandle = objectHandle;
-		this.instanceHandle = instanceHandle;
 	}
 
+	public int getClassHandle() {
+		return classHandle;
+	}
+	
 	public int getObjectHandle() {
 		return objectHandle;
-	}
-
-	public int getInstanceHandle() {
-		return instanceHandle;
 	}
 }

@@ -2,7 +2,7 @@ package gov.nist.hla.ii;
 
 import java.util.List;
 
-public interface InterObjSet {
+public interface InterObjInjection {
 	
 	public static final String INTERACTION_NAME_ROOT = "InteractionRoot.C2WInteractionRoot";
 

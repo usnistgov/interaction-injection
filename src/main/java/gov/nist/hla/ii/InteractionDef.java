@@ -19,4 +19,8 @@ public class InteractionDef {
 	public Map<String, String> getParameters() {
 		return parameters;
 	}
+	
+	public String toString() {
+		return String.format("name=%s parameters=%d", name, parameters.size());
+	}
 }
