@@ -1,6 +1,12 @@
 package gov.nist.hla.ii;
 
-import java.util.List;
+import hla.rti.FederateNotExecutionMember;
+import hla.rti.NameNotFound;
+import hla.rti.ObjectNotKnown;
+import hla.rti.RTIinternalError;
+
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
 public interface InterObjInjection {
 	
@@ -8,7 +14,13 @@ public interface InterObjInjection {
 
 	public static final String OBJECT_NAME_ROOT = "ObjectRoot";
 
-	public abstract List<InteractionDef> getInteractions(Double timeStep);
+	public BlockingQueue<InteractionDef> getInteractions();
 
-	public abstract List<ObjectDef> getObjects(Double timeStep);
+	public String formatObjectName(String objectName);
+
+	public String formatInteractionName(String interactionName);
+
+	public void addObject(String objectName, Map<String, String> attributes) throws NameNotFound, FederateNotExecutionMember, RTIinternalError, ObjectNotKnown;
+
+	public void addInteraction(String interactionName, Map<String, String> parameters);
 }
