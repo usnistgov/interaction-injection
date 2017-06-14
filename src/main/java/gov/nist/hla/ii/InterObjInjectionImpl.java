@@ -22,7 +22,7 @@ public class InterObjInjectionImpl implements InterObjInjection {
 
 	protected final InjectionFederate injFed;
 
-	BlockingQueue<InteractionDef> interactions = new LinkedBlockingQueue<InteractionDef>();
+	BlockingQueue<InterObjDef> interactions = new LinkedBlockingQueue<InterObjDef>();
 
 	public InterObjInjectionImpl(InjectionFederate injFed) {
 		super();
@@ -30,22 +30,27 @@ public class InterObjInjectionImpl implements InterObjInjection {
 	}
 
 	@Override
-	public BlockingQueue<InteractionDef> getInteractions() {
+	public BlockingQueue<InterObjDef> getInteractions() {
 		return  interactions;
 	}
-
+	
 	@Override
 	public void addInteraction(String interactionName, Map<String, String> parameters) {
-		InteractionDef def = new InteractionDef(interactionName, parameters, InteractionDef.TYPE.INTERACTION);
-		interactions.add(def);
+		InterObjDef def = new InterObjDef(interactionName, parameters, InterObjDef.TYPE.INTERACTION);
+		addInterObj(def);
 		log.trace("addInteraction=" + def);
 	}
 	
 	@Override
 	public void addObject(String objectName, Map<String, String> attributes) throws NameNotFound, FederateNotExecutionMember, RTIinternalError, ObjectNotKnown {
-		InteractionDef def = new InteractionDef(objectName, attributes, InteractionDef.TYPE.OBJECT);
-		interactions.add(def);
+		InterObjDef def = new InterObjDef(objectName, attributes, InterObjDef.TYPE.OBJECT);
+		addInterObj(def);
 		log.trace("addObject=" + def);
+	}
+	
+	@Override
+	public void addInterObj(InterObjDef def) {
+		interactions.add(def);
 	}
 
 	@Override

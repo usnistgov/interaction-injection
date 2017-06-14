@@ -221,7 +221,7 @@ public class InjectionFederate implements Runnable {
 			log.error(e);
 		}
 		try {
-			BlockingQueue<InteractionDef> interactions = interObjectInjection
+			BlockingQueue<InterObjDef> interactions = interObjectInjection
 					.getInteractions();
 			while (state != State.TERMINATING) {
 				log.trace("handleMessages==>");
@@ -229,7 +229,7 @@ public class InjectionFederate implements Runnable {
 
 				log.trace("injecting things==>");
 
-				InteractionDef def = interactions.take();
+				InterObjDef def = interactions.take();
 				while (def != null) {
 					if (def.isObject()) {
 						log.trace("updating objectDef=" + def);
@@ -502,7 +502,7 @@ public class InjectionFederate implements Runnable {
 		}
 	}
 
-	public void injectInteraction(InteractionDef def) {
+	public void injectInteraction(InterObjDef def) {
 		injectInteraction(def.getName(), def.getParameters());
 	}
 
@@ -556,7 +556,7 @@ public class InjectionFederate implements Runnable {
 		return suppliedParameters;
 	}
 
-	public void updateObject(InteractionDef def) {
+	public void updateObject(InterObjDef def) {
 		int classHandle = -1;
 		int objectHandle = -1;
 		try {
@@ -623,7 +623,7 @@ public class InjectionFederate implements Runnable {
 		return suppliedAttributes;
 	}
 
-	public int publishInteraction(InteractionDef def) {
+	public int publishInteraction(InterObjDef def) {
 		return publishInteraction(def.getName());
 	}
 
@@ -641,7 +641,7 @@ public class InjectionFederate implements Runnable {
 		return classHandle;
 	}
 
-	public int publishObject(InteractionDef def) {
+	public int publishObject(InterObjDef def) {
 		return publishObject(def.getName(), def.getParameters());
 	}
 

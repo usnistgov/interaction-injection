@@ -14,7 +14,7 @@ public interface InterObjInjection {
 
 	public static final String OBJECT_NAME_ROOT = "ObjectRoot";
 
-	public BlockingQueue<InteractionDef> getInteractions();
+	public BlockingQueue<InterObjDef> getInteractions();
 
 	public String formatObjectName(String objectName);
 
@@ -23,4 +23,6 @@ public interface InterObjInjection {
 	public void addObject(String objectName, Map<String, String> attributes) throws NameNotFound, FederateNotExecutionMember, RTIinternalError, ObjectNotKnown;
 
 	public void addInteraction(String interactionName, Map<String, String> parameters);
+
+	void addInterObj(InterObjDef def);
 }

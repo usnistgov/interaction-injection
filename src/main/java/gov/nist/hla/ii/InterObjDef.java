@@ -2,7 +2,7 @@ package gov.nist.hla.ii;
 
 import java.util.Map;
 
-public class InteractionDef {
+public class InterObjDef {
 
 	public enum TYPE {
 		INTERACTION, OBJECT
@@ -13,7 +13,7 @@ public class InteractionDef {
 	protected final String name;
 	protected final Map<String, String> parameters;
 
-	public InteractionDef(String name, Map<String, String> parameters, TYPE type) {
+	public InterObjDef(String name, Map<String, String> parameters, TYPE type) {
 		this.name = name;
 		this.parameters = parameters;
 		this.type = type;
