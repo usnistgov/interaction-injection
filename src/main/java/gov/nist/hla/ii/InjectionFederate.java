@@ -42,6 +42,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -72,7 +73,7 @@ public class InjectionFederate implements Runnable {
 	private static final int MAX_JOIN_ATTEMPTS = 6;
 	private static final int REJOIN_DELAY_MS = 10000;
 
-	private enum State {
+	public enum State {
 		CONSTRUCTED, INITIALIZED, JOINED, TERMINATING;
 	}
 
@@ -100,11 +101,11 @@ public class InjectionFederate implements Runnable {
 	private String federationName;
 	private static String fomFilePath;
 
-	// private FederateCallback callBack;
-
 	private InterObjInjection interObjectInjection;
 
 	private InterObjReception interObjectReception;
+
+	private AtomicBoolean advancing = new AtomicBoolean(false);
 
 	public String getFomFilePath() {
 		return fomFilePath;
@@ -167,16 +168,6 @@ public class InjectionFederate implements Runnable {
 		}
 	}
 
-	// public void synch() {
-	// try {
-	// synchronize(READY_TO_POPULATE);
-	// synchronize(READY_TO_RUN);
-	// } catch (RTIAmbassadorException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// }
-
 	public void loadConfiguration(String filepath) throws IOException,
 			PropertyNotFound, PropertyNotAssigned {
 		if (state != State.CONSTRUCTED && state != State.INITIALIZED) {
@@ -227,10 +218,10 @@ public class InjectionFederate implements Runnable {
 				log.trace("handleMessages==>");
 				handleMessages();
 
-				log.trace("injecting things==>");
-
-				InterObjDef def = interactions.take();
-				while (def != null) {
+				// InterObjDef def = interactions.take();
+				while (!advancing.get()) {
+					log.trace("injecting things==>");
+					InterObjDef def = interactions.take();
 					if (def.isObject()) {
 						log.trace("updating objectDef=" + def);
 						updateObject(def);
@@ -238,20 +229,7 @@ public class InjectionFederate implements Runnable {
 						log.trace("injecting interactionDef=" + def);
 						injectInteraction(def);
 					}
-					def = interactions.take();
 				}
-
-				// log.trace("injectObjects==>");
-				// BlockingQueue<ObjectDef> objects = interObjectInjection
-				// .getObjects();
-				// ObjectDef objectDef = null;
-				// while ((objectDef = objects.poll()) != null) {
-				// log.trace("objectDef=" + objectDef);
-				// updateObject(objectDef);
-				// }
-
-				// log.trace("advanceLogicalTime==>");
-				// advanceLogicalTime();
 			}
 		} catch (RTIAmbassadorException | InterruptedException e) {
 			log.error(e);
@@ -744,6 +722,7 @@ public class InjectionFederate implements Runnable {
 		try {
 			fedAmb.setTimeAdvancing();
 			rtiAmb.timeAdvanceRequest(new DoubleTime(newLogicalTime));
+			advancing.set(false);
 		} catch (RTIexception e) {
 			throw new RTIAmbassadorException(e);
 		}
@@ -858,5 +837,9 @@ public class InjectionFederate implements Runnable {
 
 	public void setInterObjectReception(InterObjReception interObjectReception) {
 		this.interObjectReception = interObjectReception;
+	}
+
+	public AtomicBoolean getAdvancing() {
+		return advancing;
 	}
 }
