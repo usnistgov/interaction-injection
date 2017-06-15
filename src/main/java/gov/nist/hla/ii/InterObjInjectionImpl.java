@@ -6,7 +6,6 @@ import hla.rti.ObjectNotKnown;
 import hla.rti.RTIinternalError;
 
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -51,15 +50,5 @@ public class InterObjInjectionImpl implements InterObjInjection {
 	@Override
 	public void addInterObj(InterObjDef def) {
 		interactions.add(def);
-	}
-
-	@Override
-	public String formatInteractionName(String interactionName) {
-		return String.format("%s.%s", INTERACTION_NAME_ROOT, interactionName);
-	}
-
-	@Override
-	public String formatObjectName(String objectName) {
-		return String.format("%s.%s", OBJECT_NAME_ROOT, objectName);
 	}
 }

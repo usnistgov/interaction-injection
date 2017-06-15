@@ -1,10 +1,10 @@
 package gov.nist.hla.ii;
 
-import emf.sds.Deserialize;
 import gov.nist.hla.ii.exception.DuplicateObjectRegistration;
 import gov.nist.hla.ii.exception.PropertyNotAssigned;
 import gov.nist.hla.ii.exception.PropertyNotFound;
 import gov.nist.hla.ii.exception.RTIAmbassadorException;
+import gov.nist.sds4emf.Deserialize;
 import hla.rti.AsynchronousDeliveryAlreadyEnabled;
 import hla.rti.AttributeHandleSet;
 import hla.rti.AttributeNotDefined;
@@ -12,6 +12,7 @@ import hla.rti.AttributeNotOwned;
 import hla.rti.ConcurrentAccessAttempted;
 import hla.rti.EnableTimeConstrainedPending;
 import hla.rti.EnableTimeRegulationPending;
+import hla.rti.FederateLoggingServiceCalls;
 import hla.rti.FederateNotExecutionMember;
 import hla.rti.FederationExecutionDoesNotExist;
 import hla.rti.InteractionClassNotDefined;
@@ -72,6 +73,9 @@ public class InjectionFederate implements Runnable {
 
 	private static final int MAX_JOIN_ATTEMPTS = 6;
 	private static final int REJOIN_DELAY_MS = 10000;
+
+	public static final String INTERACTION_NAME_ROOT = "InteractionRoot.C2WInteractionRoot";
+	public static final String OBJECT_NAME_ROOT = "ObjectRoot";
 
 	public enum State {
 		CONSTRUCTED, INITIALIZED, JOINED, TERMINATING;
@@ -215,10 +219,9 @@ public class InjectionFederate implements Runnable {
 			BlockingQueue<InterObjDef> interactions = interObjectInjection
 					.getInteractions();
 			while (state != State.TERMINATING) {
-				log.trace("handleMessages==>");
+
 				handleMessages();
 
-				// InterObjDef def = interactions.take();
 				while (!advancing.get()) {
 					log.trace("injecting things==>");
 					InterObjDef def = interactions.take();
@@ -256,6 +259,7 @@ public class InjectionFederate implements Runnable {
 		try {
 			Interaction receivedInteraction;
 			while ((receivedInteraction = fedAmb.nextInteraction()) != null) {
+				// log.trace("receivedInteraction=" + receivedInteraction);
 				int interactionHandle = receivedInteraction
 						.getInteractionClassHandle();
 				String interactionName = rtiAmb
@@ -271,6 +275,8 @@ public class InjectionFederate implements Runnable {
 
 			ObjectReflection receivedObjectReflection;
 			while ((receivedObjectReflection = fedAmb.nextObjectReflection()) != null) {
+				// log.trace("receivedObjectReflection=" +
+				// receivedObjectReflection);
 				int objectClassHandle = receivedObjectReflection
 						.getObjectClass();
 				String objectClassName = rtiAmb
@@ -280,8 +286,6 @@ public class InjectionFederate implements Runnable {
 						objectClassHandle, receivedObjectReflection);
 				interObjectReception.receiveObject(newLogicalTime,
 						objectClassName, objectName, parameters);
-				log.trace("<==handleMessages");
-
 			}
 
 			String removedObjectName;
@@ -431,27 +435,47 @@ public class InjectionFederate implements Runnable {
 		return docRoot.getObjectModel();
 	}
 
-	private void publishAndSubscribe() throws RTIAmbassadorException {
-		try {
-			for (InteractionClassType classType : getInteractionSubscribe()) {
-				log.info("creating HLA subscription for the interaction="
-						+ classType.getName().getValue());
-				int handle = rtiAmb.getInteractionClassHandle(classType
-						.getName().getValue());
+	private void publishAndSubscribe() {
+		log.trace("0");
+		int handle = 0;
+		for (InteractionClassType classType : getInteractionSubscribe()) {
+			log.info("creating HLA subscription for the interaction="
+					+ classType.getName().getValue());
+			try {
+				handle = rtiAmb.getInteractionClassHandle(classType.getName()
+						.getValue());
 				rtiAmb.subscribeInteractionClass(handle);
+			} catch (NameNotFound | FederateNotExecutionMember
+					| RTIinternalError | InteractionClassNotDefined
+					| FederateLoggingServiceCalls | SaveInProgress
+					| RestoreInProgress | ConcurrentAccessAttempted e) {
+				log.error("Continuing", e);
 			}
-			for (InteractionClassType classType : getInteractionPublish()) {
-				log.info("creating HLA publication for the interaction="
-						+ classType.getName().getValue());
-				int handle = rtiAmb.getInteractionClassHandle(classType
-						.getName().getValue());
+		}
+		log.trace("1");
+		for (InteractionClassType classType : getInteractionPublish()) {
+			log.info("creating HLA publication for the interaction="
+					+ classType.getName().getValue());
+			try {
+				handle = rtiAmb.getInteractionClassHandle(classType.getName()
+						.getValue());
 				rtiAmb.publishInteractionClass(handle);
+			} catch (NameNotFound | FederateNotExecutionMember
+					| RTIinternalError | InteractionClassNotDefined
+					| SaveInProgress | RestoreInProgress
+					| ConcurrentAccessAttempted e) {
+				log.error("Continuing", e);
 			}
-			for (ObjectClassType classType : getObjectSubscribe()) {
-				log.info("creating HLA subscription for the object="
-						+ classType.getName());
-				int objectHandle = rtiAmb.getInteractionClassHandle(classType
-						.getName().getValue());
+		}
+		log.trace("2");
+		for (ObjectClassType classType : getObjectSubscribe()) {
+			log.info("creating HLA subscription for the object="
+					+ classType.getName().getValue());
+			try {
+				String nname = formatObjectName(classType.getName().getValue());
+				log.info("creating HLA subscription for the object1="
+						+ nname);
+				int objectHandle = rtiAmb.getObjectClassHandle(nname);
 				AttributeHandleSet attributes = RtiFactoryFactory
 						.getRtiFactory().createAttributeHandleSet();
 				for (AttributeType1 attribute : classType.getAttribute()) {
@@ -460,12 +484,22 @@ public class InjectionFederate implements Runnable {
 					attributes.add(attributeHandle);
 				}
 				rtiAmb.subscribeObjectClassAttributes(objectHandle, attributes);
+			} catch (NameNotFound | FederateNotExecutionMember
+					| RTIinternalError | SaveInProgress | RestoreInProgress
+					| ConcurrentAccessAttempted | ObjectClassNotDefined
+					| AttributeNotDefined e) {
+				log.error("Continuing", e);
 			}
-			for (ObjectClassType classType : getObjectPublish()) {
-				log.info("creating HLA publication for the object="
-						+ classType.getName());
-				int objectHandle = rtiAmb.getInteractionClassHandle(classType
-						.getName().getValue());
+		}
+		log.trace("3");
+		for (ObjectClassType classType : getObjectPublish()) {
+			log.info("creating HLA publication for the object="
+					+ classType.getName().getValue());
+			try {
+				String nname = formatObjectName(classType.getName().getValue());
+				int objectHandle = rtiAmb.getObjectClassHandle(nname);
+				log.info("creating HLA publication for the object1="
+						+ nname);
 				AttributeHandleSet attributes = RtiFactoryFactory
 						.getRtiFactory().createAttributeHandleSet();
 				for (AttributeType1 attribute : classType.getAttribute()) {
@@ -474,10 +508,14 @@ public class InjectionFederate implements Runnable {
 					attributes.add(attributeHandle);
 				}
 				rtiAmb.publishObjectClass(objectHandle, attributes);
+			} catch (NameNotFound | FederateNotExecutionMember
+					| RTIinternalError | SaveInProgress | RestoreInProgress
+					| ConcurrentAccessAttempted | ObjectClassNotDefined
+					| AttributeNotDefined | OwnershipAcquisitionPending e) {
+				log.error("Continuing", e);
 			}
-		} catch (Exception e) {
-			log.error("", e);
 		}
+		log.trace("4");
 	}
 
 	public void injectInteraction(InterObjDef def) {
@@ -717,12 +755,12 @@ public class InjectionFederate implements Runnable {
 	}
 
 	public Double advanceLogicalTime() throws RTIAmbassadorException {
+		advancing.set(true);
 		newLogicalTime = fedAmb.getLogicalTime() + stepsize;
 		log.info("advancing logical time to " + newLogicalTime);
 		try {
 			fedAmb.setTimeAdvancing();
 			rtiAmb.timeAdvanceRequest(new DoubleTime(newLogicalTime));
-			advancing.set(false);
 		} catch (RTIexception e) {
 			throw new RTIAmbassadorException(e);
 		}
@@ -730,6 +768,7 @@ public class InjectionFederate implements Runnable {
 			tick();
 		}
 		log.info("advanced logical time to " + fedAmb.getLogicalTime());
+		advancing.set(false);
 		return newLogicalTime;
 	}
 
@@ -781,11 +820,10 @@ public class InjectionFederate implements Runnable {
 		Set<ObjectClassType> set = new HashSet<ObjectClassType>();
 		for (ObjectClassType oct : getFom().getObjects().getObjectClass()
 				.getObjectClass()) {
+			log.debug("getObjectSubscribe=" + oct.getName().getValue());
 			ObjectClassType oct1 = EcoreUtil.copy(oct);
-			getObjects(oct1, SharingEnumerations.SUBSCRIBE);
-			if (!oct1.getAttribute().isEmpty()) {
-				set.add(oct1);
-			}
+			getObjects(set, oct1, SharingEnumerations.SUBSCRIBE);
+			log.debug("recursing=" + oct1.getName().getValue());
 		}
 
 		return set;
@@ -795,30 +833,37 @@ public class InjectionFederate implements Runnable {
 		Set<ObjectClassType> set = new HashSet<ObjectClassType>();
 		for (ObjectClassType oct : getFom().getObjects().getObjectClass()
 				.getObjectClass()) {
+			log.debug("getObjectPublish=" + oct.getName().getValue());
 			ObjectClassType oct1 = EcoreUtil.copy(oct);
-			getObjects(oct1, SharingEnumerations.PUBLISH);
-			if (!oct1.getAttribute().isEmpty()) {
-				set.add(oct1);
-			}
+			getObjects(set, oct1, SharingEnumerations.PUBLISH);
+			log.debug("recursing=" + oct1.getName().getValue());
 		}
 
 		return set;
 	}
 
-	public ObjectClassType getObjects(ObjectClassType oct,
-			final SharingEnumerations pubsub) {
+	public ObjectClassType getObjects(Set<ObjectClassType> set,
+			ObjectClassType oct, final SharingEnumerations pubsub) {
+		log.debug("getObjects=" + oct.getName().getValue());
 		Iterator<AttributeType1> itr = oct.getAttribute().iterator();
 		while (itr.hasNext()) {
 			AttributeType1 attr = itr.next();
+			log.debug("processing AttributeType1.name=="
+					+ attr.getName().getValue());
 			if (attr.getSharing().getValue() != pubsub
 					&& attr.getSharing().getValue() != SharingEnumerations.PUBLISH_SUBSCRIBE) {
 				itr.remove();
 				log.trace("removed AttributeType1.name="
 						+ attr.getName().getValue());
 			}
+			if (!oct.getAttribute().isEmpty()) {
+				set.add(oct);
+				log.trace("added ObjectClassType.name="
+						+ oct.getName().getValue() + " size=" + set.size());
+			}
 		}
 		for (ObjectClassType oct1 : oct.getObjectClass()) {
-			getObjects(oct1, pubsub);
+			getObjects(set, oct1, pubsub);
 		}
 		return oct;
 	}
@@ -840,6 +885,15 @@ public class InjectionFederate implements Runnable {
 	}
 
 	public AtomicBoolean getAdvancing() {
+		log.trace("advancing=" + advancing.get());
 		return advancing;
+	}
+
+	public String formatInteractionName(String interactionName) {
+		return String.format("%s.%s", INTERACTION_NAME_ROOT, interactionName);
+	}
+
+	public String formatObjectName(String objectName) {
+		return String.format("%s.%s", OBJECT_NAME_ROOT, objectName);
 	}
 }

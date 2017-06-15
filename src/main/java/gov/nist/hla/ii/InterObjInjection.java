@@ -10,15 +10,7 @@ import java.util.concurrent.BlockingQueue;
 
 public interface InterObjInjection {
 	
-	public static final String INTERACTION_NAME_ROOT = "InteractionRoot.C2WInteractionRoot";
-
-	public static final String OBJECT_NAME_ROOT = "ObjectRoot";
-
 	public BlockingQueue<InterObjDef> getInteractions();
-
-	public String formatObjectName(String objectName);
-
-	public String formatInteractionName(String interactionName);
 
 	public void addObject(String objectName, Map<String, String> attributes) throws NameNotFound, FederateNotExecutionMember, RTIinternalError, ObjectNotKnown;
 
