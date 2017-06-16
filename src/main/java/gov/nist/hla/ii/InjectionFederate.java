@@ -221,7 +221,7 @@ public class InjectionFederate implements Runnable {
 				handleMessages();
 
 				Queue<InterObjDef> interactions = interObjectInjection
-						.getInteractions();
+						.getPublications(newLogicalTime);
 
 				InterObjDef def = null;
 				while ((def = interactions.poll()) != null) {

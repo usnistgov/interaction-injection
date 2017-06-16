@@ -12,23 +12,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class InterObjInjectionImpl implements InterObjInjection {
+public abstract class InterObjInjectionImpl implements InterObjInjection {
 
 	private static final long serialVersionUID = -3409552497539566001L;
 
 	private static final Logger log = LogManager
 			.getLogger(InterObjInjectionImpl.class);
 
-	private Queue<InterObjDef> interactions = new ConcurrentLinkedQueue<InterObjDef>();
+	protected Queue<InterObjDef> publications = new ConcurrentLinkedQueue<InterObjDef>();
 
 	public InterObjInjectionImpl() {
 		super();
 	}
 
 	@Override
-	public Queue<InterObjDef> getInteractions() {
-		return  interactions;
-	}
+	public abstract Queue<InterObjDef> getPublications(Double logicalTime);
 	
 	@Override
 	public void addInteraction(String interactionName, Map<String, String> parameters) {
@@ -44,8 +42,7 @@ public class InterObjInjectionImpl implements InterObjInjection {
 		log.trace("addObject=" + def);
 	}
 	
-	@Override
-	public void addInterObj(InterObjDef def) {
-		interactions.add(def);
+	private void addInterObj(InterObjDef def) {
+		publications.add(def);
 	}
 }
