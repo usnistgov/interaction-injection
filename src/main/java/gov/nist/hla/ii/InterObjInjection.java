@@ -6,11 +6,11 @@ import hla.rti.ObjectNotKnown;
 import hla.rti.RTIinternalError;
 
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
 
 public interface InterObjInjection {
 	
-	public BlockingQueue<InterObjDef> getInteractions();
+	public Queue<InterObjDef> getInteractions();
 
 	public void addObject(String objectName, Map<String, String> attributes) throws NameNotFound, FederateNotExecutionMember, RTIinternalError, ObjectNotKnown;
 

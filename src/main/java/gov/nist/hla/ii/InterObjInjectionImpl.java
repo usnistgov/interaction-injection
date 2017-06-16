@@ -6,8 +6,8 @@ import hla.rti.ObjectNotKnown;
 import hla.rti.RTIinternalError;
 
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,17 +19,14 @@ public class InterObjInjectionImpl implements InterObjInjection {
 	private static final Logger log = LogManager
 			.getLogger(InterObjInjectionImpl.class);
 
-	protected final InjectionFederate injFed;
+	private Queue<InterObjDef> interactions = new ConcurrentLinkedQueue<InterObjDef>();
 
-	BlockingQueue<InterObjDef> interactions = new LinkedBlockingQueue<InterObjDef>();
-
-	public InterObjInjectionImpl(InjectionFederate injFed) {
+	public InterObjInjectionImpl() {
 		super();
-		this.injFed = injFed;
 	}
 
 	@Override
-	public BlockingQueue<InterObjDef> getInteractions() {
+	public Queue<InterObjDef> getInteractions() {
 		return  interactions;
 	}
 	
