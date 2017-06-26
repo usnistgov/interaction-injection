@@ -10,6 +10,8 @@ import java.util.Queue;
 
 public interface InterObjInjection {
 	
+	public Queue<InterObjDef> getPreSynchInteractions();
+
 	public Queue<InterObjDef> getPublications(Double logicalTime);
 
 	public void addObject(String objectName, Map<String, String> attributes) throws NameNotFound, FederateNotExecutionMember, RTIinternalError, ObjectNotKnown;

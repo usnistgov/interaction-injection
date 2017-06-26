@@ -26,6 +26,9 @@ public abstract class InterObjInjectionImpl implements InterObjInjection {
 	}
 
 	@Override
+	public abstract Queue<InterObjDef> getPreSynchInteractions();
+
+	@Override
 	public abstract Queue<InterObjDef> getPublications(Double logicalTime);
 	
 	@Override
