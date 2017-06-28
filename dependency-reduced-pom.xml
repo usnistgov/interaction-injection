@@ -123,7 +123,7 @@
     <federation.version>0.0.1-SNAPSHOT</federation.version>
     <federation.name>TripleSend</federation.name>
     <package.name>gov.nist.hla.ii</package.name>
-    <c2w.version>0.3.0-SNAPSHOT</c2w.version>
+    <c2w.version>0.4.0-SNAPSHOT</c2w.version>
     <federate.name>InjectionFederate</federate.name>
     <nar.version>3.3.0</nar.version>
   </properties>
