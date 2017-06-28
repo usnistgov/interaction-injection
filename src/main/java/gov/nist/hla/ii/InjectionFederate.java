@@ -1,6 +1,5 @@
 package gov.nist.hla.ii;
 
-import gov.nist.hla.ii.exception.DuplicateObjectRegistration;
 import gov.nist.hla.ii.exception.PropertyNotAssigned;
 import gov.nist.hla.ii.exception.PropertyNotFound;
 import gov.nist.hla.ii.exception.RTIAmbassadorException;
@@ -554,8 +553,7 @@ public class InjectionFederate implements Runnable {
 			for (Map.Entry<String, String> entry : parameters.entrySet()) {
 				int parameterHandle = rtiAmb.getParameterHandle(entry.getKey(),
 						interactionHandle);
-				byte[] parameterValue = EncodingHelpers.encodeString(String
-						.format("%s:%f", entry.getValue(), getLbts()));
+				byte[] parameterValue = entry.getValue().getBytes();
 				suppliedParameters.add(parameterHandle, parameterValue);
 			}
 		} catch (NameNotFound | FederateNotExecutionMember | RTIinternalError e) {
@@ -620,7 +618,7 @@ public class InjectionFederate implements Runnable {
 				int attributeHandle = rtiAmb.getAttributeHandle(entry.getKey(),
 						classHandle);
 				byte[] attributeValue = EncodingHelpers.encodeString(String
-						.format("%s:%f", entry.getValue(), getLbts()));
+						.format("%s:%f", entry.getKey(), getLbts()));
 				suppliedAttributes.add(attributeHandle, attributeValue);
 			}
 		} catch (RTIinternalError e) {
