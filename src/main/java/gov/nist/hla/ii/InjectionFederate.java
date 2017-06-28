@@ -586,8 +586,7 @@ public class InjectionFederate implements Runnable {
 			suppliedAttributes = RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
 			for (Map.Entry<String, String> entry : attributes.entrySet()) {
 				int attributeHandle = rtiAmb.getAttributeHandle(entry.getKey(), classHandle);
-				byte[] attributeValue = EncodingHelpers
-						.encodeString(String.format("%s:%f", entry.getKey(), getLbts()));
+				byte[] attributeValue = entry.getValue().getBytes();
 				suppliedAttributes.add(attributeHandle, attributeValue);
 			}
 		} catch (RTIinternalError e) {
